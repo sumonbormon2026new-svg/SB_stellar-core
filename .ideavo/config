@@ -12,8 +12,8 @@
   "templateName": "custom",
   "projectDependencies": [
     {
-      "name": "Install Build Dependencies",
-      "command": "source $HOME/.cargo/env && cargo install cargo-build-cc && ./autogen.sh && ./configure"
+      "name": "Setup Build Environment",
+      "command": "export PATH=\"$HOME/.cargo/bin:$PATH\" && ./autogen.sh && ./configure --enable-tests"
     }
   ],
   "codeChecks": [
@@ -37,11 +37,11 @@
     },
     {
       "name": "Build Project",
-      "command": "make -j$(nproc)"
+      "command": "export PATH=\"$HOME/.cargo/bin:$PATH\" && make -j$(nproc)"
     },
     {
       "name": "Build Rust Components",
-      "command": "cargo build --release"
+      "command": "export PATH=\"$HOME/.cargo/bin:$PATH\" && make check"
     }
   ],
   "runStep": [
