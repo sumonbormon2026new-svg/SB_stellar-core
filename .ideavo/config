@@ -1,0 +1,85 @@
+{
+  "systemSetup": [
+    {
+      "name": "Install Rust Toolchain",
+      "command": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+    },
+    {
+      "name": "Install Docker",
+      "command": "curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh && rm get-docker.sh"
+    }
+  ],
+  "templateName": "custom",
+  "projectDependencies": [
+    {
+      "name": "Install Build Dependencies",
+      "command": "source $HOME/.cargo/env && cargo install cargo-build-cc && ./autogen.sh && ./configure"
+    }
+  ],
+  "codeChecks": [
+    {
+      "name": "Run Clang Format",
+      "command": "make format"
+    },
+    {
+      "name": "Run Lint Checks",
+      "command": "make check"
+    }
+  ],
+  "buildSteps": [
+    {
+      "name": "Generate Build System",
+      "command": "./autogen.sh"
+    },
+    {
+      "name": "Configure Build",
+      "command": "./configure --enable-tests"
+    },
+    {
+      "name": "Build Project",
+      "command": "make -j$(nproc)"
+    },
+    {
+      "name": "Build Rust Components",
+      "command": "cargo build --release"
+    }
+  ],
+  "runStep": [
+    {
+      "name": "Run Stellar Core",
+      "command": "./src/stellar-core --http-port 11625 --bind 0.0.0.0 --manual-close",
+      "port": "11625"
+    }
+  ],
+  "deploySteps": [
+    {
+      "name": "Build Docker Image",
+      "command": "docker build -f docker/Dockerfile . -t stellar-core:latest"
+    },
+    {
+      "name": "Deploy to Container",
+      "command": "docker run -p 11625:11625 stellar-core:latest"
+    }
+  ],
+  "cleanupFiles": [
+    "config.h",
+    "Makefile",
+    "src/Makefile",
+    "lib/Makefile",
+    "src/stellar-core",
+    "src/*.o",
+    "src/*.lo",
+    "lib/*.a",
+    "lib/*.la",
+    "autom4te.cache",
+    "config.log",
+    "config.status",
+    "*.dirstamp",
+    "lib/*.dirstamp",
+    "src/*.dirstamp"
+  ],
+  "packageManager": "cargo",
+  "envPaths": [
+    {"name": "default", "path": ".env"}
+  ]
+}
